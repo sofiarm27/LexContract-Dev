@@ -196,8 +196,8 @@ const RegisterContract = () => {
                             const mod = contract.variables_adicionales.modalidadPago;
                             if (mod === 'unico' || mod === 'Pago Único') {
                                 setPaymentOption('unico');
-                            } else if (mod === 'abonos' || mod === 'Abonos') {
-                                setPaymentOption('abonos');
+                            } else if (mod === 'cuotas' || mod === 'abonos' || mod === 'Abonos' || mod === 'Cuotas') {
+                                setPaymentOption('cuotas');
                             }
 
                             // Restore installments (abonos) if they were saved
@@ -482,7 +482,8 @@ const RegisterContract = () => {
                 })),
                 variables_adicionales: {
                     ...formData,
-                    installments: paymentOption === 'abonos' ? installments : []
+                    modalidadPago: paymentOption,
+                    installments: paymentOption === 'cuotas' ? installments : []
                 }
             };
 
@@ -926,28 +927,28 @@ const RegisterContract = () => {
                                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
                                     <div
                                         onClick={() => {
-                                            setPaymentOption('abonos');
-                                            setFormData(prev => ({ ...prev, modalidadPago: 'abonos' }));
+                                            setPaymentOption('cuotas');
+                                            setFormData(prev => ({ ...prev, modalidadPago: 'cuotas' }));
                                         }}
                                         style={{
                                             width: '20px',
                                             height: '20px',
                                             borderRadius: '50%',
-                                            border: `2px solid ${paymentOption === 'abonos' ? '#D4AF37' : '#475569'}`,
+                                            border: `2px solid ${paymentOption === 'cuotas' ? '#D4AF37' : '#475569'}`,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center'
                                         }}
                                     >
-                                        {paymentOption === 'abonos' && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#D4AF37' }} />}
+                                        {paymentOption === 'cuotas' && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#D4AF37' }} />}
                                     </div>
-                                    <span style={{ fontSize: '0.9375rem', color: paymentOption === 'abonos' ? 'white' : '#94a3b8' }}>Abonos</span>
+                                    <span style={{ fontSize: '0.9375rem', color: paymentOption === 'cuotas' ? 'white' : '#94a3b8' }}>Abonos / Cuotas</span>
                                 </label>
                             </div>
                         </div>
                     </div>
 
-                    {paymentOption === 'abonos' && (
+                    {paymentOption === 'cuotas' && (
                         <div style={{
                             marginTop: '2rem',
                             paddingTop: '2rem',

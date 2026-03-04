@@ -30,22 +30,33 @@ def sync_payments(db: Session, db_contract: Contrato):
     vars_adicionales = db_contract.variables_adicionales or {}
     modalidad = vars_adicionales.get("modalidadPago")
     installments = vars_adicionales.get("installments", [])
+
+    # Auto-calculate total from installments if not set on the contract
+    contrato_total = db_contract.total or 0
+    if not contrato_total and installments:
+        try:
+            contrato_total = sum(
+                float(str(inst.get("monto", 0)).replace(",", ""))
+                for inst in installments
+            )
+        except Exception:
+            contrato_total = 0
     
     # Clean existing payments for this contract to refresh
     db.query(Pago).filter(Pago.contrato_id == db_contract.id).delete()
     
     # If it's single payment, create one record
-    if (modalidad == "unico" or not installments) and db_contract.total > 0:
+    if (modalidad == "unico" or not installments) and contrato_total > 0:
         pago_unico = Pago(
             contrato_id=db_contract.id,
             tipo_pago="UNICO",
-            monto_total_contrato=db_contract.total,
-            monto_abono=db_contract.total,
+            monto_total_contrato=contrato_total,
+            monto_abono=contrato_total,
             fecha_vencimiento=db_contract.fecha,
             estado="PENDIENTE"
         )
         db.add(pago_unico)
-    else:
+    elif installments:
         # Multiple installments
         for inst in installments:
             monto = inst.get("monto", 0)
@@ -58,7 +69,7 @@ def sync_payments(db: Session, db_contract: Contrato):
             pago = Pago(
                 contrato_id=db_contract.id,
                 tipo_pago="ABONO",
-                monto_total_contrato=db_contract.total,
+                monto_total_contrato=contrato_total,
                 monto_abono=monto,
                 fecha_vencimiento=inst.get("fecha") if inst.get("fecha") else None,
                 estado="PENDIENTE"
@@ -114,6 +125,7 @@ def generate_contract_from_template(db: Session, plantilla_id: str, contract_dat
         "es_biblioteca": False,
         "estado": "Borrador",
         "clauses": template.clauses,
+        "total": contract_data.get("total"),
         "variables_adicionales": contract_data.get("variables_adicionales")
     }
     db_contract = Contrato(**new_contract_data)

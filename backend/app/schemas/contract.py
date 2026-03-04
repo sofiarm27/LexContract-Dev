@@ -46,13 +46,24 @@ class ClausulaCreate(BaseModel):
     titulo: str
     texto: str
 
+class ClausulaUpdate(BaseModel):
+    titulo: Optional[str] = None
+    texto: Optional[str] = None
+
 class PlantillaCreate(BaseModel):
     titulo: str
     tipo: Optional[str] = "Insolvencia Económica"
     descripcion: Optional[str] = None
     clauses: List[Dict[str, Any]] # List of {"titulo": "...", "texto": "...", "variables": [...]}
 
+class PlantillaUpdate(BaseModel):
+    titulo: Optional[str] = None
+    tipo: Optional[str] = None
+    descripcion: Optional[str] = None
+    clauses: Optional[List[Dict[str, Any]]] = None
+
 class ContratoFromPlantilla(BaseModel):
     cliente_id: int
     abogado_id: int
+    total: Optional[Decimal] = None
     variables_adicionales: Optional[Dict[str, Any]] = None

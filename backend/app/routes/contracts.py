@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.schemas.contract import ContratoSchema, ContratoCreate, ContratoUpdate, ClausulaCreate, PlantillaCreate, ContratoFromPlantilla
+from app.schemas.contract import ContratoSchema, ContratoCreate, ContratoUpdate, ClausulaCreate, ClausulaUpdate, PlantillaCreate, PlantillaUpdate, ContratoFromPlantilla
 from app.repositories import contract_repository
 from app.services import contract_service
 from app.models.contract import Contrato
@@ -43,11 +43,11 @@ def create_plantilla(
 @router.put("/clausula/{id}", response_model=ContratoSchema)
 def update_clausula(
     id: str,
-    clausula: ClausulaCreate,
+    clausula: ClausulaUpdate,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):
-    updated_item = contract_service.update_contract(db, id, clausula.model_dump())
+    updated_item = contract_service.update_contract(db, id, clausula.model_dump(exclude_unset=True))
     if not updated_item:
         raise HTTPException(status_code=404, detail="Cláusula no encontrada")
     return updated_item
@@ -55,11 +55,11 @@ def update_clausula(
 @router.put("/plantilla/{id}", response_model=ContratoSchema)
 def update_plantilla(
     id: str,
-    plantilla: PlantillaCreate,
+    plantilla: PlantillaUpdate,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):
-    updated_item = contract_service.update_contract(db, id, plantilla.model_dump())
+    updated_item = contract_service.update_contract(db, id, plantilla.model_dump(exclude_unset=True))
     if not updated_item:
         raise HTTPException(status_code=404, detail="Plantilla no encontrada")
     return updated_item

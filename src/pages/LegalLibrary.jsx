@@ -99,9 +99,10 @@ const LegalLibrary = () => {
     const toggleClauseInTemplate = (clause) => {
         setNewItem(prev => {
             const currentClauses = prev.clauses || [];
-            const exists = currentClauses.find(c => c.titulo === clause.titulo);
+            const clauseTitleLower = (clause.titulo || '').toLowerCase().trim();
+            const exists = currentClauses.find(c => (c.titulo || '').toLowerCase().trim() === clauseTitleLower);
             if (exists) {
-                return { ...prev, clauses: currentClauses.filter(c => c.titulo !== clause.titulo) };
+                return { ...prev, clauses: currentClauses.filter(c => (c.titulo || '').toLowerCase().trim() !== clauseTitleLower) };
             } else {
                 return { ...prev, clauses: [...currentClauses, { titulo: clause.titulo, texto: clause.clauses?.texto || '' }] };
             }
@@ -403,39 +404,42 @@ const LegalLibrary = () => {
                                         {clauses.length === 0 ? (
                                             <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>No hay cláusulas disponibles para agregar.</p>
                                         ) : (
-                                            clauses.map(clause => (
-                                                <div
-                                                    key={clause.id}
-                                                    onClick={() => toggleClauseInTemplate(clause)}
-                                                    style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '0.75rem',
-                                                        padding: '0.6rem 0.8rem',
-                                                        backgroundColor: newItem.clauses?.find(c => c.titulo === clause.titulo) ? 'rgba(212, 175, 55, 0.1)' : '#0a1423',
-                                                        border: `1px solid ${newItem.clauses?.find(c => c.titulo === clause.titulo) ? '#D4AF37' : '#1e2d45'}`,
-                                                        borderRadius: '0.5rem',
-                                                        cursor: 'pointer',
-                                                        fontSize: '0.8125rem',
-                                                        transition: 'all 0.2s ease'
-                                                    }}
-                                                >
-                                                    <div style={{
-                                                        width: '16px',
-                                                        height: '16px',
-                                                        borderRadius: '4px',
-                                                        border: '1px solid #D4AF37',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        backgroundColor: newItem.clauses?.find(c => c.titulo === clause.titulo) ? '#D4AF37' : 'transparent',
-                                                        flexShrink: 0
-                                                    }}>
-                                                        {newItem.clauses?.find(c => c.titulo === clause.titulo) && <X size={12} color="#000" />}
+                                            clauses.map(clause => {
+                                                const isActive = newItem.clauses?.find(c => (c.titulo || '').toLowerCase().trim() === (clause.titulo || '').toLowerCase().trim());
+                                                return (
+                                                    <div
+                                                        key={clause.id}
+                                                        onClick={() => toggleClauseInTemplate(clause)}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.75rem',
+                                                            padding: '0.6rem 0.8rem',
+                                                            backgroundColor: isActive ? 'rgba(212, 175, 55, 0.1)' : '#0a1423',
+                                                            border: `1px solid ${isActive ? '#D4AF37' : '#1e2d45'}`,
+                                                            borderRadius: '0.5rem',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.8125rem',
+                                                            transition: 'all 0.2s ease'
+                                                        }}
+                                                    >
+                                                        <div style={{
+                                                            width: '16px',
+                                                            height: '16px',
+                                                            borderRadius: '4px',
+                                                            border: '1px solid #D4AF37',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            backgroundColor: isActive ? '#D4AF37' : 'transparent',
+                                                            flexShrink: 0
+                                                        }}>
+                                                            {isActive && <X size={12} color="#000" />}
+                                                        </div>
+                                                        <span style={{ color: isActive ? 'white' : '#94a3b8', flex: 1 }}>{clause.titulo}</span>
                                                     </div>
-                                                    <span style={{ color: newItem.clauses?.find(c => c.titulo === clause.titulo) ? 'white' : '#94a3b8', flex: 1 }}>{clause.titulo}</span>
-                                                </div>
-                                            ))
+                                                )
+                                            })
                                         )}
                                     </div>
                                 </div>

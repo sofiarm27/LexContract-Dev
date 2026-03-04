@@ -10,7 +10,7 @@ def get_contracts(db: Session, skip: int = 0, limit: int = 100, user_id: int = N
         query = query.filter(Contrato.abogado_id == user_id)
     if tipo:
         query = query.filter(Contrato.tipo == tipo)
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(Contrato.id.desc()).offset(skip).limit(limit).all()
 
 def create_contract(db: Session, db_contract: Contrato):
     db.add(db_contract)

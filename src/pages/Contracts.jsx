@@ -47,6 +47,8 @@ const Contracts = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [lawyerFilter, setLawyerFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const CONTRACTS_PER_PAGE = 8;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -91,7 +93,7 @@ const Contracts = () => {
     const openEditModal = (contract) => {
         setSelectedContract(contract);
         setEditFormData({
-            estado: contract.estado || 'BORRADOR',
+            estado: (contract.estado || 'BORRADOR').toUpperCase(),
             abogado_id: contract.abogado?.id || '',
             titulo: contract.titulo || ''
         });
@@ -320,7 +322,7 @@ const Contracts = () => {
                                 type="text"
                                 placeholder="Buscar por Cliente o ID..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                 style={{
                                     width: '100%',
                                     padding: '0.75rem 1rem 0.75rem 3rem',
@@ -335,7 +337,7 @@ const Contracts = () => {
                         <div style={{ display: 'flex', gap: '0.75rem' }}>
                             <select
                                 value={lawyerFilter}
-                                onChange={(e) => setLawyerFilter(e.target.value)}
+                                onChange={(e) => { setLawyerFilter(e.target.value); setCurrentPage(1); }}
                                 style={{ padding: '0.75rem 1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '0.5rem', color: 'white', outline: 'none', cursor: 'pointer' }}
                             >
                                 <option value="">Abogado: Todos</option>
@@ -345,7 +347,7 @@ const Contracts = () => {
                             </select>
                             <select
                                 value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
+                                onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
                                 style={{ padding: '0.75rem 1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '0.5rem', color: 'white', outline: 'none', cursor: 'pointer' }}
                             >
                                 <option value="">Estado: Todos</option>
@@ -375,77 +377,79 @@ const Contracts = () => {
                         </thead>
                         <tbody>
                             {filteredContracts.length > 0 ? (
-                                filteredContracts.map((contract) => (
-                                    <tr key={contract.id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.875rem', transition: 'background-color 0.2s' }}>
-                                        <td style={{ padding: '1rem 1.5rem', color: 'var(--accent-gold)', fontWeight: 600 }}>{contract.id}</td>
-                                        <td style={{ padding: '1rem 1.5rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)' }}>
-                                                    <User size={16} />
+                                filteredContracts
+                                    .slice((currentPage - 1) * CONTRACTS_PER_PAGE, currentPage * CONTRACTS_PER_PAGE)
+                                    .map((contract) => (
+                                        <tr key={contract.id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.875rem', transition: 'background-color 0.2s' }}>
+                                            <td style={{ padding: '1rem 1.5rem', color: 'var(--accent-gold)', fontWeight: 600 }}>{contract.id}</td>
+                                            <td style={{ padding: '1rem 1.5rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)' }}>
+                                                        <User size={16} />
+                                                    </div>
+                                                    <span style={{ fontWeight: 500 }}>
+                                                        {contract.cliente ? `${contract.cliente.nombre} ${contract.cliente.apellido || ''}` : 'Sin Cliente'}
+                                                    </span>
                                                 </div>
-                                                <span style={{ fontWeight: 500 }}>
-                                                    {contract.cliente ? `${contract.cliente.nombre} ${contract.cliente.apellido || ''}` : 'Sin Cliente'}
+                                            </td>
+                                            <td style={{ padding: '1rem 1.5rem' }}>
+                                                <span style={{ color: 'var(--text-secondary)' }}>{contract.tipo || 'N/A'}</span>
+                                            </td>
+                                            <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <Calendar size={14} />
+                                                    {contract.fecha}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '1rem 1.5rem' }}>
+                                                <span style={{
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '1rem',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 600,
+                                                    backgroundColor:
+                                                        contract.estado === 'TERMINADO' ? 'rgba(34, 197, 94, 0.15)' :
+                                                            contract.estado === 'BORRADOR' ? 'rgba(245, 158, 11, 0.15)' :
+                                                                'rgba(239, 68, 68, 0.15)',
+                                                    color:
+                                                        contract.estado === 'TERMINADO' ? '#22c55e' :
+                                                            contract.estado === 'BORRADOR' ? '#f59e0b' :
+                                                                '#ef4444',
+                                                    border: `1px solid ${contract.estado === 'TERMINADO' ? 'rgba(34, 197, 94, 0.3)' :
+                                                        contract.estado === 'BORRADOR' ? 'rgba(245, 158, 11, 0.3)' :
+                                                            'rgba(239, 68, 68, 0.3)'
+                                                        }`
+                                                }}>
+                                                    {contract.estado}
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '1rem 1.5rem' }}>
-                                            <span style={{ color: 'var(--text-secondary)' }}>{contract.tipo || 'N/A'}</span>
-                                        </td>
-                                        <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Calendar size={14} />
-                                                {contract.fecha}
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '1rem 1.5rem' }}>
-                                            <span style={{
-                                                padding: '0.25rem 0.75rem',
-                                                borderRadius: '1rem',
-                                                fontSize: '0.75rem',
-                                                fontWeight: 600,
-                                                backgroundColor:
-                                                    contract.estado === 'TERMINADO' ? 'rgba(34, 197, 94, 0.15)' :
-                                                        contract.estado === 'BORRADOR' ? 'rgba(245, 158, 11, 0.15)' :
-                                                            'rgba(239, 68, 68, 0.15)',
-                                                color:
-                                                    contract.estado === 'TERMINADO' ? '#22c55e' :
-                                                        contract.estado === 'BORRADOR' ? '#f59e0b' :
-                                                            '#ef4444',
-                                                border: `1px solid ${contract.estado === 'TERMINADO' ? 'rgba(34, 197, 94, 0.3)' :
-                                                    contract.estado === 'BORRADOR' ? 'rgba(245, 158, 11, 0.3)' :
-                                                        'rgba(239, 68, 68, 0.3)'
-                                                    }`
-                                            }}>
-                                                {contract.estado}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
-                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                                <button
-                                                    onClick={() => openPreviewModal(contract)}
-                                                    style={{ padding: '0.5rem', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid #1e2d45', borderRadius: '0.375rem', color: '#94a3b8', cursor: 'pointer' }}
-                                                >
-                                                    <Eye size={16} />
-                                                </button>
-                                                {contract.estado === 'BORRADOR' && (
+                                            </td>
+                                            <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                                                     <button
-                                                        onClick={() => openEditModal(contract)}
-                                                        style={{ padding: '0.5rem', backgroundColor: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '0.375rem', color: 'var(--accent-gold)', cursor: 'pointer' }}
-                                                        title="Editar Contrato"
+                                                        onClick={() => openPreviewModal(contract)}
+                                                        style={{ padding: '0.5rem', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid #1e2d45', borderRadius: '0.375rem', color: '#94a3b8', cursor: 'pointer' }}
                                                     >
-                                                        <Edit2 size={16} />
+                                                        <Eye size={16} />
                                                     </button>
-                                                )}
-                                                <button
-                                                    onClick={() => handleDeleteClick(contract)}
-                                                    style={{ padding: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '0.375rem', color: '#ef4444', cursor: 'pointer' }}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                                    {(contract.estado || '').toUpperCase() === 'BORRADOR' && (
+                                                        <button
+                                                            onClick={() => openEditModal(contract)}
+                                                            style={{ padding: '0.5rem', backgroundColor: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '0.375rem', color: 'var(--accent-gold)', cursor: 'pointer' }}
+                                                            title="Editar Contrato"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => handleDeleteClick(contract)}
+                                                        style={{ padding: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '0.375rem', color: '#ef4444', cursor: 'pointer' }}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
                             ) : (
                                 <tr>
                                     <td colSpan="6" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
@@ -459,10 +463,37 @@ const Contracts = () => {
 
                 {/* Pagination */}
                 <div style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    <span>Mostrando {filteredContracts.length} contratos</span>
-                    <div style={{ display: 'flex', gap: '0.25rem' }}>
-                        <button style={{ background: 'none', border: '1px solid var(--border-color)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>{'<'}</button>
-                        <button style={{ background: 'none', border: '1px solid var(--border-color)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>{'>'}</button>
+                    <span>
+                        Mostrando {Math.min((currentPage - 1) * CONTRACTS_PER_PAGE + 1, filteredContracts.length)}-{Math.min(currentPage * CONTRACTS_PER_PAGE, filteredContracts.length)} de {filteredContracts.length} contratos
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        <button
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            style={{
+                                background: 'none',
+                                border: '1px solid var(--border-color)',
+                                color: currentPage === 1 ? '#475569' : 'white',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '4px',
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                            }}
+                        >{'<'}</button>
+                        <span style={{ padding: '0 0.5rem', color: '#D4AF37', fontWeight: 600 }}>
+                            {currentPage} / {Math.max(1, Math.ceil(filteredContracts.length / CONTRACTS_PER_PAGE))}
+                        </span>
+                        <button
+                            onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredContracts.length / CONTRACTS_PER_PAGE), p + 1))}
+                            disabled={currentPage >= Math.ceil(filteredContracts.length / CONTRACTS_PER_PAGE)}
+                            style={{
+                                background: 'none',
+                                border: '1px solid var(--border-color)',
+                                color: currentPage >= Math.ceil(filteredContracts.length / CONTRACTS_PER_PAGE) ? '#475569' : 'white',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '4px',
+                                cursor: currentPage >= Math.ceil(filteredContracts.length / CONTRACTS_PER_PAGE) ? 'not-allowed' : 'pointer'
+                            }}
+                        >{'>'}</button>
                     </div>
                 </div>
             </Card>
